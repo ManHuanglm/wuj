@@ -5,8 +5,4 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
-    <style name="Theme.Wuji.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/wuji_primary</item>
-        <item name="postSplashScreenTheme">@style/Theme.Wuji</item>
-    </style>
 </resources>
