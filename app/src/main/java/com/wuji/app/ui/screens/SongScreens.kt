@@ -127,8 +127,30 @@ fun PlaylistDetailScreen(navController: NavController, viewModel: SongViewModel 
     var isLoading by remember { mutableStateOf(true) }
     LaunchedEffect(sourceId, playlistId) { isLoading = true; viewModel.getPlaylistDetail(sourceId, PlaylistInfo(id = playlistId, sourceId = sourceId), 1) { detail = it; isLoading = false } }
     Scaffold(topBar = { WujiTopBar(title = detail?.info?.title ?: "歌单详情", onBack = { navController.popBackStack() }) }) { padding ->
-        if (isLoading) LoadingIndicator(Modifier.padding(padding))
-        else detail?.let { d -> if (d.songs.isEmpty()) EmptyState("暂无歌曲", Modifier.padding(padding)) else LazyColumn(Modifier.padding(padding)) { items(d.songs) { song -> ListItem(headlineContent = { Text(song.title) }, supportingContent = { Text(song.artist) }, trailingContent = { IconButton(onClick = { navController.navigate(Route.SongPlayView.route) }) { Icon(Icons.Default.PlayArrow, contentDescription = "播放") } }) }) } } ?: EmptyState("加载失败", Modifier.padding(padding))
+        if (isLoading) {
+            LoadingIndicator(Modifier.padding(padding))
+        } else {
+            val d = detail
+            if (d == null) {
+                EmptyState("加载失败", Modifier.padding(padding))
+            } else if (d.songs.isEmpty()) {
+                EmptyState("暂无歌曲", Modifier.padding(padding))
+            } else {
+                LazyColumn(Modifier.padding(padding)) {
+                    items(d.songs) { song ->
+                        ListItem(
+                            headlineContent = { Text(song.title) },
+                            supportingContent = { Text(song.artist) },
+                            trailingContent = {
+                                IconButton(onClick = { navController.navigate(Route.SongPlayView.route) }) {
+                                    Icon(Icons.Default.PlayArrow, contentDescription = "播放")
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
