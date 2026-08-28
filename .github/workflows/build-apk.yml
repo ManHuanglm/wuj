@@ -39,16 +39,17 @@ jobs:
       - name: Merge resources
         run: ./gradlew mergeDebugResources --no-daemon --console=plain -Pandroid.overridePathCheck=true
 
-      - name: Inspect merged values.xml around line 2176
+      - name: Search for problematic ? references
         run: |
-          echo "=== Lines 2170-2185 of merged values.xml ==="
-          sed -n '2170,2185p' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml
-          echo "=== Total lines ==="
-          wc -l app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml
-          echo "=== Search for empty ? references ==="
-          grep -n 'name=""' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml || true
-          grep -n '>"?<' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml || true
-          grep -n '?>$' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml | head -5 || true
+          FILE="app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml"
+          echo "=== All ? that are not ?attr/ or ?android: or ?xml ==="
+          grep -n '?' "$FILE" | grep -v '?attr/' | grep -v '?android:' | grep -v '<?xml' | grep -v '<\?' | head -30
+          echo "=== Items with ? value ==="
+          grep -n '<item.*>?' "$FILE" | grep -v '?attr/' | grep -v '?android:' | head -20
+          echo "=== Search for bare ? references ==="
+          grep -n '>?</' "$FILE" | head -20
+          echo "=== Search for ? in style items ==="
+          grep -n '<item name=' "$FILE" | grep '?' | grep -v '?attr/' | grep -v '?android:' | head -20
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon --console=plain -Pandroid.overridePathCheck=true
