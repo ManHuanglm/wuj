@@ -39,18 +39,16 @@ jobs:
       - name: Merge resources
         run: ./gradlew mergeDebugResources --no-daemon --console=plain -Pandroid.overridePathCheck=true
 
-      - name: Find and inspect merged values.xml
+      - name: Inspect merged values.xml around line 2176
         run: |
-          echo "=== Finding values.xml files ==="
-          find app/build -name "values.xml" -type f 2>/dev/null
-          echo "=== Searching for attr/? ==="
-          find app/build -name "values.xml" -type f -exec grep -n "attr/?" {} \; 2>/dev/null || true
-          echo "=== Showing context ==="
-          find app/build -name "values.xml" -type f -exec grep -B5 -A5 "attr/?" {} \; 2>/dev/null || true
-          echo "=== Searching for '?' as attribute name ==="
-          find app/build -name "values.xml" -type f -exec grep -n 'name="?"' {} \; 2>/dev/null || true
-          echo "=== Searching for ?attr/ references ==="
-          find app/build -name "values.xml" -type f -exec grep -n '?attr/' {} \; 2>/dev/null | head -20 || true
+          echo "=== Lines 2170-2185 of merged values.xml ==="
+          sed -n '2170,2185p' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml
+          echo "=== Total lines ==="
+          wc -l app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml
+          echo "=== Search for empty ? references ==="
+          grep -n 'name=""' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml || true
+          grep -n '>"?<' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml || true
+          grep -n '?>$' app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml | head -5 || true
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon --console=plain -Pandroid.overridePathCheck=true
