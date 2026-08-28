@@ -23,9 +23,6 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          sdk-version: '34'
-          build-tools-version: '34.0.0'
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -40,7 +37,17 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --console=plain -Pandroid.overridePathCheck=true
+        run: ./gradlew assembleDebug --no-daemon --console=plain --stacktrace -Pandroid.overridePathCheck=true
+
+      - name: Dump merged values.xml on failure
+        if: failure()
+        run: |
+          echo "=== Searching for attr/? in merged resources ==="
+          find app/build/intermediates -name "values.xml" -exec grep -n "attr/?" {} \; 2>/dev/null || true
+          echo "=== Showing context around attr/? ==="
+          find app/build/intermediates -name "values.xml" -exec grep -B5 -A5 "attr/?" {} \; 2>/dev/null || true
+          echo "=== Listing merged resource dirs ==="
+          find app/build/intermediates -name "values.xml" 2>/dev/null || true
 
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon --console=plain -Pandroid.overridePathCheck=true
