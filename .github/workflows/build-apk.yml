@@ -36,18 +36,24 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --console=plain --stacktrace -Pandroid.overridePathCheck=true
+      - name: Merge resources
+        run: ./gradlew mergeDebugResources --no-daemon --console=plain -Pandroid.overridePathCheck=true
 
-      - name: Dump merged values.xml on failure
-        if: failure()
+      - name: Find and inspect merged values.xml
         run: |
-          echo "=== Searching for attr/? in merged resources ==="
-          find app/build/intermediates -name "values.xml" -exec grep -n "attr/?" {} \; 2>/dev/null || true
-          echo "=== Showing context around attr/? ==="
-          find app/build/intermediates -name "values.xml" -exec grep -B5 -A5 "attr/?" {} \; 2>/dev/null || true
-          echo "=== Listing merged resource dirs ==="
-          find app/build/intermediates -name "values.xml" 2>/dev/null || true
+          echo "=== Finding values.xml files ==="
+          find app/build -name "values.xml" -type f 2>/dev/null
+          echo "=== Searching for attr/? ==="
+          find app/build -name "values.xml" -type f -exec grep -n "attr/?" {} \; 2>/dev/null || true
+          echo "=== Showing context ==="
+          find app/build -name "values.xml" -type f -exec grep -B5 -A5 "attr/?" {} \; 2>/dev/null || true
+          echo "=== Searching for '?' as attribute name ==="
+          find app/build -name "values.xml" -type f -exec grep -n 'name="?"' {} \; 2>/dev/null || true
+          echo "=== Searching for ?attr/ references ==="
+          find app/build -name "values.xml" -type f -exec grep -n '?attr/' {} \; 2>/dev/null | head -20 || true
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon --console=plain -Pandroid.overridePathCheck=true
 
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon --console=plain -Pandroid.overridePathCheck=true
